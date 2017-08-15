@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // JobType is an enumeration of the different types of jobs we handle
@@ -42,6 +43,7 @@ type Job struct {
 type Worker struct {
 	ID    int
 	queue chan *Job
+	wg    *sync.WaitGroup
 }
 
 // The WorkQueue holds the workers and allows adding jobs and stopping the job
@@ -51,23 +53,25 @@ type WorkQueue struct {
 	queue    chan *Job
 	badLCCN  string
 	goodLCCN string
+	wg *sync.WaitGroup
 }
 
 // NewWorkQueue creates n workers and starts them listening for jobs
 func NewWorkQueue(ctx *FixContext, n int) *WorkQueue {
-	var wq = &WorkQueue{
+	var q = &WorkQueue{
 		workers:  make([]*Worker, n),
 		queue:    make(chan *Job, 100000),
 		badLCCN:  ctx.BadLCCN,
 		goodLCCN: ctx.GoodLCCN,
+		wg:       new(sync.WaitGroup),
 	}
 
 	for i := 0; i < n; i++ {
-		wq.workers[i] = &Worker{ID: i, queue: wq.queue}
-		go wq.workers[i].Start()
+		q.workers[i] = &Worker{ID: i, queue: q.queue, wg: q.wg}
+		go q.workers[i].Start()
 	}
 
-	return wq
+	return q
 }
 
 func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
@@ -95,8 +99,15 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 	q.queue <- job
 }
 
+// Wait blocks until the queue is empty; calls to Add() will fail at this point
+func (q *WorkQueue) Wait() {
+	close(q.queue)
+	q.wg.Wait()
+}
+
 // Start listens for jobs until the work queue is closed
 func (w *Worker) Start() {
+	w.wg.Add(1)
 	for j := range w.queue {
 		log.Printf("DEBUG: worker %d Processing %s Job for %q", w.ID, j.Type, j.DestPath)
 		switch j.Type {
@@ -106,6 +117,7 @@ func (w *Worker) Start() {
 			w.CopyFile(j)
 		}
 	}
+	w.wg.Done()
 }
 
 // CopyFile just opens source and copies the contents to the destination path.

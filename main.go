@@ -63,4 +63,5 @@ func main() {
 		fmt.Printf("Error trying to copy/fix the batch: %s\n", err)
 		os.Exit(1)
 	}
+	queue.Wait()
 }
