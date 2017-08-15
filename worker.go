@@ -27,6 +27,7 @@ func (w *Worker) Start() {
 		case XMLFix:
 			w.FixXML(j)
 		case PDFFix:
+			w.FixPDF(j)
 		case FileCopy:
 			w.CopyFile(j)
 		}
