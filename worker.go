@@ -1,8 +1,10 @@
 package main
 
 import (
-	"log"
+	"bytes"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
 	"sync"
 )
@@ -23,6 +25,7 @@ func (w *Worker) Start() {
 		log.Printf("DEBUG: worker %d Processing %s Job for %q", w.ID, j.Type, j.DestPath)
 		switch j.Type {
 		case XMLFix:
+			w.FixXML(j)
 		case PDFFix:
 		case FileCopy:
 			w.CopyFile(j)
@@ -66,5 +69,21 @@ func (w *Worker) CopyFile(j *Job) {
 	err = out.Close()
 	if err != nil {
 		log.Printf("ERROR: unable to close %q: %s", j.DestPath, err)
+	}
+}
+
+// FixXML reads the entire source file into memory, replaces all occurrences of
+// the bad LCCN with the good LCCN, and writes the contents to the destination
+func (w *Worker) FixXML(j *Job) {
+	var b, err = ioutil.ReadFile(j.SourcePath)
+	if err != nil {
+		log.Printf("ERROR: unable to read %q: %s", j.SourcePath, err)
+		return
+	}
+
+	var newBytes = bytes.Replace(b, w.badLCCN, w.goodLCCN, -1)
+	err = ioutil.WriteFile(j.DestPath, newBytes, 0644)
+	if err != nil {
+		log.Printf("ERROR: unable to write %q: %s", j.DestPath, err)
 	}
 }
