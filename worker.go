@@ -64,6 +64,5 @@ func (w *Worker) CopyFile(j *Job) {
 	err = out.Close()
 	if err != nil {
 		log.Printf("ERROR: unable to close %q: %s", j.DestPath, err)
-		return
 	}
 }
