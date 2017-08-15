@@ -55,7 +55,13 @@ func NewWorkQueue(ctx *FixContext, n int) *WorkQueue {
 	}
 
 	for i := 0; i < n; i++ {
-		q.workers[i] = &Worker{ID: i, queue: q.queue, wg: q.wg, badLCCN: ctx.BadLCCN, goodLCCN: ctx.GoodLCCN}
+		q.workers[i] = &Worker{
+			ID:       i,
+			queue:    q.queue,
+			wg:       q.wg,
+			badLCCN:  []byte(ctx.BadLCCN),
+			goodLCCN: []byte(ctx.GoodLCCN),
+		}
 		go q.workers[i].Start()
 	}
 

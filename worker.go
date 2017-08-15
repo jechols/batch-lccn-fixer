@@ -12,8 +12,8 @@ type Worker struct {
 	ID       int
 	queue    chan *Job
 	wg       *sync.WaitGroup
-	badLCCN  string
-	goodLCCN string
+	badLCCN  []byte
+	goodLCCN []byte
 }
 
 // Start listens for jobs until the work queue is closed
