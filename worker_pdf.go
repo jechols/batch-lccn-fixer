@@ -65,7 +65,7 @@ func (w *Worker) FixPDF(j *Job) {
 	}
 
 	// Import the fixed data
-	cmd = exec.Command("exiftool", "-json="+tmp.Name(), j.DestPath)
+	cmd = exec.Command("exiftool", "-overwrite_original", "-json="+tmp.Name(), j.DestPath)
 	err = cmd.Run()
 	if err != nil {
 		log.Printf("ERROR: unable to write EXIF data for %q: %s", j.DestPath, err)
