@@ -41,25 +41,21 @@ type Job struct {
 // The WorkQueue holds the workers and allows adding jobs and stopping the job
 // collection process
 type WorkQueue struct {
-	workers  []*Worker
-	queue    chan *Job
-	badLCCN  string
-	goodLCCN string
-	wg *sync.WaitGroup
+	workers []*Worker
+	queue   chan *Job
+	wg      *sync.WaitGroup
 }
 
 // NewWorkQueue creates n workers and starts them listening for jobs
 func NewWorkQueue(ctx *FixContext, n int) *WorkQueue {
 	var q = &WorkQueue{
-		workers:  make([]*Worker, n),
-		queue:    make(chan *Job, 100000),
-		badLCCN:  ctx.BadLCCN,
-		goodLCCN: ctx.GoodLCCN,
-		wg:       new(sync.WaitGroup),
+		workers: make([]*Worker, n),
+		queue:   make(chan *Job, 100000),
+		wg:      new(sync.WaitGroup),
 	}
 
 	for i := 0; i < n; i++ {
-		q.workers[i] = &Worker{ID: i, queue: q.queue, wg: q.wg}
+		q.workers[i] = &Worker{ID: i, queue: q.queue, wg: q.wg, badLCCN: ctx.BadLCCN, goodLCCN: ctx.GoodLCCN}
 		go q.workers[i].Start()
 	}
 

@@ -9,9 +9,11 @@ import (
 
 // Workers just poll the job queue until it's done
 type Worker struct {
-	ID    int
-	queue chan *Job
-	wg    *sync.WaitGroup
+	ID       int
+	queue    chan *Job
+	wg       *sync.WaitGroup
+	badLCCN  string
+	goodLCCN string
 }
 
 // Start listens for jobs until the work queue is closed
