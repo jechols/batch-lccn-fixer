@@ -93,7 +93,7 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 	q.queue <- job
 }
 
-// Wait blocks until the queue is empty; calls to Add() will fail at this point
+// Wait blocks until the queue is empty and all workers have quit
 func (q *WorkQueue) Wait() {
 	q.wg.Wait()
 }
