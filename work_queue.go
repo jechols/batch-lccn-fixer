@@ -72,7 +72,6 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 	// Create the destination directory if it doesn't exist
 	var err = os.MkdirAll(destDir, 0755)
 	if err != nil {
-		// TODO: Add a results or errors channel!
 		log.Printf("ERROR: could not create %q: %s", destDir, err)
 		return
 	}
