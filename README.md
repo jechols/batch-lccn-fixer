@@ -24,3 +24,12 @@ On most failures, the tool will attempt to retry the job.  There are a lot of
 careful error checks as this tool needs to be able to correct batches at any
 time in the future if we have to reload from our archive (rather than
 re-archiving a second batch and hoping we didn't create new problems).
+
+This tool relies on `exiftool` existing on the system on which it's run.  If
+that isn't a possibility, the PDFs won't get their EXIF data fixed.  We'll have
+to decide if this is acceptable, as there's always a risk that `exiftool` is
+simply not an option in the future.  If this happens, a dummy `exiftool` binary
+would need to be put in the system path, but not reading or writing to the
+files.  Otherwise this application will take a much longer time than it should,
+as it will try to process the PDFs 5 times each, and it will log a great number
+of false errors.
