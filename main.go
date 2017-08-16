@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 
@@ -42,7 +43,18 @@ func getArgs() *FixContext {
 		BadLCCN:   os.Args[3],
 		GoodLCCN:  os.Args[4],
 	}
-	var info, err = os.Stat(fc.SourceDir)
+	var err error
+	fc.SourceDir, err = filepath.Abs(fc.SourceDir)
+	if err != nil {
+		usageError("Source (%s) is invalid: %s", fc.SourceDir, err)
+	}
+	fc.DestDir, err = filepath.Abs(fc.DestDir)
+	if err != nil {
+		usageError("Source (%s) is invalid: %s", fc.DestDir, err)
+	}
+
+	var info os.FileInfo
+	info, err = os.Stat(fc.SourceDir)
 	if err != nil {
 		usageError("Source (%s) is invalid: %s", fc.SourceDir, err)
 	}
