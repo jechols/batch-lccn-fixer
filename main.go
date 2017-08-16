@@ -12,7 +12,7 @@ func usageError(msg string, args ...interface{}) {
 	var fmsg = fmt.Sprintf(msg, args...)
 	fmt.Printf("\033[31;1mERROR: %s\033[0m\n", fmsg)
 	fmt.Printf(`
-Usage: %s <source directory> <destination directory> <bad LCCN> <good LCCN> [--force]
+Usage: %s <source directory> <destination directory> <bad LCCN> <good LCCN>
 
 Finds files in a given source directory that need an LCCN fix.  This includes
 the XML files as well as PDF metadata.  After fixes are applied, files are
@@ -21,10 +21,6 @@ copied to the destination directory.
 The source directory should be either the pristine dark archive files or else
 a copy of those files (TIFFs aren't necessary, however).  The destination
 should be where the batch should live when it's ready for ingest.
-
-If "--force" is specified, the destination directory may already have files,
-which could allow running this in-place, though that is not necessarily
-advisable unless the source directory is backed up elsewhere.
 `, os.Args[0])
 	os.Exit(1)
 }
@@ -34,7 +30,7 @@ func getArgs() *FixContext {
 	if len(os.Args) < 5 {
 		usageError("Missing one or more arguments")
 	}
-	if len(os.Args) > 6 {
+	if len(os.Args) > 5 {
 		usageError("Too many arguments supplied")
 	}
 
@@ -63,27 +59,9 @@ func getArgs() *FixContext {
 		usageError("Source (%s) is invalid: not a directory", fc.SourceDir)
 	}
 
-	var force bool
-	if len(os.Args) == 6 {
-		if os.Args[5] == "--force" {
-			force = true
-		} else {
-			usageError("Unknown argument %q", os.Args[5])
-		}
-	}
-
-	info, err = os.Stat(fc.DestDir)
-	if !force {
-		if err == nil || !os.IsNotExist(err) {
-			usageError("Destination (%s) already exists", fc.DestDir)
-		}
-	} else {
-		if err != nil {
-			usageError("Destination (%s) is invalid: %s", fc.DestDir, err)
-		}
-		if !info.IsDir() {
-			usageError("Destination (%s) is invalid: not a directory", fc.DestDir)
-		}
+	_, err = os.Stat(fc.DestDir)
+	if err == nil || !os.IsNotExist(err) {
+		usageError("Destination (%s) already exists", fc.DestDir)
 	}
 
 	return fc
