@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 )
 
 func usageError(msg string, args ...interface{}) {
@@ -97,5 +98,9 @@ func main() {
 		fmt.Printf("Error trying to copy/fix the batch: %s\n", err)
 		os.Exit(1)
 	}
+
+	// HACK: We need to be sure the queue has had time to start getting filled
+	// up, especially if the disk crawling is particularly slow
+	time.Sleep(time.Second * 5)
 	queue.Wait()
 }
