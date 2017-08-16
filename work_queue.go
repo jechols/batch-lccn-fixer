@@ -95,5 +95,8 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 
 // Wait blocks until the queue is empty and all workers have quit
 func (q *WorkQueue) Wait() {
+	for _, w := range q.workers {
+		w.Done()
+	}
 	q.wg.Wait()
 }
