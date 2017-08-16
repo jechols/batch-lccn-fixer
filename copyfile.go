@@ -9,6 +9,12 @@ import (
 // copyfile is a general file-copying utility for ensuring that we gather (and
 // return) all possible errors as well as we can
 func copyfile(src, dest string) (err error) {
+	// Allow for the possibility of src and dest being the same file, in which
+	// case our job is already done
+	if src == dest {
+		return
+	}
+
 	var in, out *os.File
 
 	in, err = os.Open(src)
