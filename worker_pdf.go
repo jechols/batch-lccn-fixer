@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -17,15 +16,19 @@ var sourceFileReplacer = regexp.MustCompile(`"SourceFile":\s*"[^"]+"`)
 // LCCN for the good.
 func (w *Worker) FixPDF(j *Job) {
 	// We work on a copy of the file, not the original!
-	w.CopyFile(j)
+	var err = copyfile(j.SourcePath, j.DestPath)
+	if err != nil {
+		w.retry(j, "unable to copy PDF file %q: %s", j.SourcePath, err)
+		return
+	}
 
 	// Gather intel on the file
 	var cmd = exec.Command("exiftool", "-json", j.DestPath)
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	var err = cmd.Run()
+	err = cmd.Run()
 	if err != nil {
-		log.Printf("ERROR: unable to get EXIF data for %q: %s", j.DestPath, err)
+		w.retry(j, "unable to get EXIF data for %q: %s", j.DestPath, err)
 		return
 	}
 
@@ -43,7 +46,7 @@ func (w *Worker) FixPDF(j *Job) {
 	var tmp *os.File
 	tmp, err = ioutil.TempFile("", "")
 	if err != nil {
-		log.Printf("ERROR: unable to create tempfile to store EXIF JSON for %q: %s", j.DestPath, err)
+		w.retry(j, "unable to create tempfile to store EXIF JSON for %q: %s", j.DestPath, err)
 		return
 	}
 	defer func() {
@@ -56,11 +59,11 @@ func (w *Worker) FixPDF(j *Job) {
 	var n int
 	n, err = tmp.Write(fixed)
 	if err != nil {
-		log.Printf("ERROR: unable to create tempfile to store EXIF JSON for %q: %s", j.DestPath, err)
+		w.retry(j, "unable to create tempfile to store EXIF JSON for %q: %s", j.DestPath, err)
 		return
 	}
 	if n != len(fixed) {
-		log.Printf("ERROR: unable to create tempfile to store EXIF JSON for %q: data was only partially written", j.DestPath, err)
+		w.retry(j, "unable to create tempfile to store EXIF JSON for %q: data was only partially written", j.DestPath, err)
 		return
 	}
 
@@ -68,6 +71,6 @@ func (w *Worker) FixPDF(j *Job) {
 	cmd = exec.Command("exiftool", "-overwrite_original", "-json="+tmp.Name(), j.DestPath)
 	err = cmd.Run()
 	if err != nil {
-		log.Printf("ERROR: unable to write EXIF data for %q: %s", j.DestPath, err)
+		w.retry(j, "unable to write EXIF data for %q: %s", j.DestPath, err)
 	}
 }

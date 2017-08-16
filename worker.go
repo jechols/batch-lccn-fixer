@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"sync"
@@ -20,7 +21,11 @@ type Worker struct {
 func (w *Worker) Start() {
 	w.wg.Add(1)
 	for j := range w.queue {
-		log.Printf("DEBUG: worker %d Processing %s Job for %q", w.ID, j.Type, j.DestPath)
+		if j.Failures > 0 {
+			log.Printf("DEBUG: worker %d Processing %s Job for %q (retry #%d)", w.ID, j.Type, j.DestPath, j.Failures)
+		} else {
+			log.Printf("DEBUG: worker %d Processing %s Job for %q", w.ID, j.Type, j.DestPath)
+		}
 		switch j.Type {
 		case XMLFix:
 			w.FixXML(j)
@@ -33,11 +38,25 @@ func (w *Worker) Start() {
 	w.wg.Done()
 }
 
+// retry will put the job back into the main queue unless it has already failed
+// too many times
+func (w *Worker) retry(j *Job, reasonFormat string, reasonArgs ...interface{}) {
+	var reason = fmt.Sprintf(reasonFormat, reasonArgs...)
+	j.Failures++
+	if j.Failures >= 5 {
+		log.Printf("ERROR: %s", reason)
+		return
+	}
+
+	log.Printf("WARN: %s; trying again (retry #%d)", reason, j.Failures)
+	w.queue <- j
+}
+
 // CopyFile just opens source and copies the contents to the destination path
 func (w *Worker) CopyFile(j *Job) {
 	var err = copyfile(j.SourcePath, j.DestPath)
 	if err != nil {
-		log.Printf("ERROR: %s", err)
+		w.retry(j, err.Error())
 	}
 }
 
@@ -46,13 +65,13 @@ func (w *Worker) CopyFile(j *Job) {
 func (w *Worker) FixXML(j *Job) {
 	var b, err = ioutil.ReadFile(j.SourcePath)
 	if err != nil {
-		log.Printf("ERROR: unable to read %q: %s", j.SourcePath, err)
+		w.retry(j, "unable to read %q: %s", j.SourcePath, err)
 		return
 	}
 
 	var newBytes = bytes.Replace(b, w.badLCCN, w.goodLCCN, -1)
 	err = ioutil.WriteFile(j.DestPath, newBytes, 0644)
 	if err != nil {
-		log.Printf("ERROR: unable to write %q: %s", j.DestPath, err)
+		w.retry(j, "unable to write %q: %s", j.DestPath, err)
 	}
 }

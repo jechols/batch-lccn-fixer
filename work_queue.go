@@ -36,6 +36,7 @@ type Job struct {
 	SourcePath string
 	DestPath   string
 	Type       JobType
+	Failures   int
 }
 
 // The WorkQueue holds the workers and allows adding jobs and stopping the job
