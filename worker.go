@@ -42,7 +42,7 @@ func (w *Worker) Start() {
 }
 
 func (w *Worker) Done() {
-	log.Printf("DEBUG: worker %d draining pool and exiting")
+	log.Printf("DEBUG: worker %d draining pool and exiting", w.ID)
 	w.Lock()
 	w.done = true
 	w.Unlock()
