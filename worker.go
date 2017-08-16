@@ -55,6 +55,13 @@ func (w *Worker) CopyFile(j *Job) {
 		return
 	}
 
+	defer func() {
+		var err = out.Close()
+		if err != nil {
+			log.Printf("WARN: unable to close %q: %s", j.DestPath, err)
+		}
+	}()
+
 	_, err = io.Copy(out, in)
 	if err != nil {
 		log.Printf("ERROR: unable to write to %q: %s", j.DestPath, err)
@@ -65,11 +72,6 @@ func (w *Worker) CopyFile(j *Job) {
 	if err != nil {
 		log.Printf("ERROR: unable to sync %q: %s", j.DestPath, err)
 		return
-	}
-
-	err = out.Close()
-	if err != nil {
-		log.Printf("ERROR: unable to close %q: %s", j.DestPath, err)
 	}
 }
 
