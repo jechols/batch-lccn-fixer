@@ -19,3 +19,8 @@ batch, and put it into the "fixed" path.  The fix does the following:
 - Replaces all PDF EXIF data that matches the bad LCCN.  As is the case with
   the XML, if the bad LCCN is something likely to occur in a lot of places,
   this tool must not be used.
+
+On most failures, the tool will attempt to retry the job.  There are a lot of
+careful error checks as this tool needs to be able to correct batches at any
+time in the future if we have to reload from our archive (rather than
+re-archiving a second batch and hoping we didn't create new problems).
