@@ -95,6 +95,5 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 
 // Wait blocks until the queue is empty; calls to Add() will fail at this point
 func (q *WorkQueue) Wait() {
-	close(q.queue)
 	q.wg.Wait()
 }
