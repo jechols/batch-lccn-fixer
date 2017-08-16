@@ -32,8 +32,8 @@ func (w *Worker) Start() {
 			var isDone = w.done
 			w.Unlock()
 			if isDone {
-				w.wg.Done()
 				log.Printf("INFO: worker %d exiting", w.ID)
+				w.wg.Done()
 				return
 			}
 			time.Sleep(time.Millisecond * 50)
