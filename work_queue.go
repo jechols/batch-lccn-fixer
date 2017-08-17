@@ -82,11 +82,16 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 	var destFile = filepath.Join(destDir, baseName)
 	var job = &Job{SourcePath: sourcePath, DestPath: destFile}
 
-	if len(baseName) > 10 && ext == "xml" {
-		job.Type = XMLFix
-	} else if ext == "pdf" {
+	switch ext {
+	case "xml":
+		// For XML, we do NOT want to change the OCR encoding, but we need to nab
+		// batch description XMLs
+		if len(baseName) > 10 || baseName[:5] == "batch" {
+			job.Type = XMLFix
+		}
+	case "pdf":
 		job.Type = PDFFix
-	} else {
+	default:
 		job.Type = FileCopy
 	}
 
