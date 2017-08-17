@@ -78,7 +78,6 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 	}
 
 	var ext = strings.ToLower(filepath.Ext(baseName)[1:])
-	log.Printf("INFO: analyzing %q (destination %q, type %s)", sourcePath, destDir, ext)
 	var destFile = filepath.Join(destDir, baseName)
 	var job = &Job{SourcePath: sourcePath, DestPath: destFile}
 
@@ -95,6 +94,7 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 		job.Type = FileCopy
 	}
 
+	log.Printf("INFO: queueing job for %q (destination %q, type %s)", sourcePath, destDir, job.Type)
 	q.queue <- job
 }
 
