@@ -29,9 +29,10 @@ func copyfile(src, dest string) (err error) {
 	}
 
 	defer func() {
-		err = out.Close()
-		if err != nil {
-			err = fmt.Errorf("unable to close %q: %s", dest, err)
+		var xerr = out.Close()
+		if xerr != nil && err == nil {
+			err = fmt.Errorf("unable to close %q: %s", dest, xerr)
+			return
 		}
 	}()
 
