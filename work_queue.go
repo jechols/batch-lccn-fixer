@@ -87,6 +87,8 @@ func (q *WorkQueue) Add(sourcePath, destDir, baseName string) {
 		// batch description XMLs
 		if len(baseName) > 10 || baseName[:5] == "batch" {
 			job.Type = XMLFix
+		} else {
+			job.Type = FileCopy
 		}
 	case "pdf":
 		job.Type = PDFFix
