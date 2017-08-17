@@ -61,6 +61,8 @@ func (w *Worker) process(j *Job) {
 		w.FixPDF(j)
 	case FileCopy:
 		w.CopyFile(j)
+	case Unknown:
+		log.Fatalf("FATAL: worker %d attempted to process a job of unknown type for %q", w.ID, j.DestPath)
 	}
 }
 
